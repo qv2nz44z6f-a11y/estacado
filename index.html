@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d2a24">
+<title>Estacado</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Estacado">
+
+<style>
+:root{--bg:#f3f1ec;--card:#fff;--ink:#1c1f1d;--mut:#6b716c;--line:#dcd8cf;--acc:#1f6f4a;--acc2:#e8f2ec;--warn:#b5521b;--ok:#2f7d4f;--head:#1d2a24}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit}
+.top{position:sticky;top:0;z-index:10;background:var(--head);color:#fff;padding:10px 12px 8px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.row{display:flex;gap:8px;align-items:center}
+.ai{flex:1;min-width:0}
+.ai .lbl{font-size:12px;opacity:.75;letter-spacing:.04em;text-transform:uppercase}
+.ai .val{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.ai .sub{font-size:12px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:600;background:#fff;color:var(--head)}
+.btn.acc{background:#3fbf7f;color:#08210f}
+.btn.ghost{background:transparent;color:inherit;border:1px solid currentColor}
+.btn.sm{padding:8px 10px;font-size:14px}
+.tools{margin-top:8px;gap:6px}
+.tools input{flex:1;min-width:0;border:0;border-radius:10px;padding:10px;font-size:16px}
+.chips{display:flex;gap:6px;margin-top:6px;font-size:13px;opacity:.95;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.12);border-radius:20px;padding:3px 10px}
+main{padding:8px 8px 120px}
+.dm{background:var(--card);border-radius:12px;margin:8px 0;border:1px solid var(--line);overflow:hidden}
+.dm.cur{outline:3px solid var(--acc)}
+.dmh{display:flex;justify-content:space-between;padding:6px 12px;background:#f8f7f3;border-bottom:1px solid var(--line);font-weight:700}
+.dmh span{color:var(--mut);font-weight:500;font-size:13px}
+.pt{display:grid;grid-template-columns:62px 1fr auto;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.pt:first-of-type{border-top:0}
+.pt.done{background:#eef6f0}
+.pt.nx{background:#fff6dc;box-shadow:inset 5px 0 0 #e0a100}
+.pt.nx .side::after{content:'SIGUIENTE';display:block;font-size:10px;color:#a87600;letter-spacing:.05em}
+.chip.go{background:#3fbf7f;color:#08210f;font-weight:700}
+.side{font-weight:700;font-size:14px}
+.side small{display:block;color:var(--mut);font-weight:500}
+.cz{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums}
+.lec{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.lec small{display:block;font-size:11px;color:var(--mut);font-weight:600;text-align:right}
+.lec.neg{color:var(--warn)}
+.ck{color:var(--ok);font-size:13px;font-weight:700;text-align:right}
+.empty{padding:30px 16px;text-align:center;color:var(--mut)}
+.empty h2{color:var(--ink)}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:30;align-items:flex-end}
+.sheet.on{display:flex}
+.pane{background:var(--card);width:100%;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.pane h3{margin:0 0 4px}
+.big{font-size:56px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
+.mut{color:var(--mut);font-size:14px}
+.f{display:block;margin:10px 0}
+.f span{display:block;font-size:13px;color:var(--mut);margin-bottom:4px}
+.f input,.f select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:20px;background:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.acts .btn{flex:1;background:var(--acc2);color:var(--acc)}
+.acts .btn.pri{background:var(--acc);color:#fff}
+.res{background:#f8f7f3;border-radius:10px;padding:10px 12px;margin-top:8px;font-variant-numeric:tabular-nums}
+.res b{font-size:20px}
+.tabs{display:flex;gap:6px;margin:8px 0}
+.tabs button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600}
+.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.hist{font-size:13px;color:var(--mut);margin-top:10px}
+.hist div{padding:4px 0;border-top:1px dashed var(--line)}
+.fab{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:20;display:flex;gap:8px}
+.fab .btn{box-shadow:0 4px 14px rgba(0,0,0,.25);background:var(--acc);color:#fff;padding:14px 16px}
+.fab .btn.alt{background:#fff;color:var(--acc)}
+.rt{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;margin-top:8px}
+.rt th,.rt td{border-bottom:1px solid var(--line);padding:5px 4px;text-align:right}
+.rt th:first-child,.rt td:first-child,.rt td:nth-child(2),.rt th:nth-child(2){text-align:left}
+.sum{display:grid;grid-template-columns:1fr auto;gap:4px 12px;background:#f8f7f3;border-radius:10px;padding:10px 12px;margin-top:8px;font-variant-numeric:tabular-nums;font-size:14px}
+.verd{margin-top:10px;padding:12px;border-radius:10px;font-weight:800;font-size:20px;text-align:center}
+.verd.ok{background:#e3f3e8;color:var(--ok)}.verd.bad{background:#fbe9e0;color:var(--warn)}.verd.na{background:#f1efe9;color:var(--mut);font-size:15px}
+@media print{body>*:not(#shRep){display:none!important}#shRep{position:static;display:block;background:none}#repPane{max-height:none;border-radius:0;padding:0}.noprint{display:none!important}}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;z-index:50;display:none;font-size:14px}
+</style>
+</head>
+<body>
+<div class="top" id="top">
+  <div class="row">
+    <div class="ai" id="aiBox">
+      <div class="lbl">Altura instrumental</div>
+      <div class="val" id="aiVal">—</div>
+      <div class="sub" id="aiSub">Toca "Estación" para comenzar</div>
+    </div>
+    <button class="btn acc" id="bEst">Estación</button>
+    <button class="btn ghost sm" id="bMenu">☰</button>
+  </div>
+  <div class="row tools">
+    <input id="q" inputmode="decimal" placeholder="Ir a DM…">
+    <button class="btn sm" id="bGo">Ir</button>
+    <button class="btn sm" id="bFil">Todos</button>
+  </div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<main id="list"></main>
+
+<div class="fab" id="fab" style="display:none">
+  <button class="btn alt" id="bPrev">▲</button>
+  <button class="btn" id="bNext">Siguiente ▼</button>
+</div>
+
+<!-- Punto -->
+<div class="sheet" id="shPt"><div class="pane">
+  <h3 id="ptT">DM</h3>
+  <div class="mut" id="ptS"></div>
+  <div class="big" id="ptL">—</div>
+  <div class="mut" style="text-align:center">lectura de mira para marcar la cota</div>
+  <label class="f"><span>Lectura real en terreno (opcional, para corte/relleno)</span>
+    <input id="ptR" inputmode="decimal" placeholder="ej. 1.452"></label>
+  <div class="res" id="ptD" style="display:none"></div>
+  <div class="acts">
+    <button class="btn pri" id="ptOk">✓ Estacado</button>
+    <button class="btn" id="ptPc">Punto de cambio</button>
+  </div>
+  <div class="acts">
+    <button class="btn" id="ptUndo">Quitar marca</button>
+    <button class="btn" id="ptX">Cerrar</button>
+  </div>
+</div></div>
+
+<!-- Estacion -->
+<div class="sheet" id="shEst"><div class="pane">
+  <h3>Estación</h3>
+  <div class="tabs"><button id="tPR" class="on">Desde PR</button><button id="tPC">Cambio</button><button id="tCI">Cierre</button></div>
+  <div id="vPR">
+    <div class="grid2">
+      <label class="f"><span>Nombre PR</span><input id="eN" placeholder="PR-1"></label>
+      <label class="f"><span>Cota PR</span><input id="eC" inputmode="decimal"></label>
+    </div>
+    <label class="f"><span>Lectura atrás sobre el PR</span><input id="eLA" inputmode="decimal"></label>
+  </div>
+  <div id="vPC" style="display:none">
+    <div class="mut">1) Con el nivel aún en la estación actual, lee adelante sobre el punto de cambio. 2) Mueve el nivel y lee atrás sobre el mismo punto.</div>
+    <label class="f"><span>Lectura adelante (estación actual)</span><input id="pLA" inputmode="decimal"></label>
+    <div class="res" id="pC">Cota punto de cambio: —</div>
+    <label class="f"><span>Lectura atrás (nueva estación)</span><input id="pLB" inputmode="decimal"></label>
+  </div>
+  <div id="vCI" style="display:none">
+    <div class="mut">Al terminar, lee adelante sobre un PR de cota conocida (puede ser el mismo de partida).</div>
+    <div class="grid2">
+      <label class="f"><span>PR de cierre</span><input id="cN" placeholder="PR-1"></label>
+      <label class="f"><span>Cota conocida</span><input id="cC" inputmode="decimal"></label>
+    </div>
+    <label class="f"><span>Lectura adelante sobre el PR</span><input id="cL" inputmode="decimal"></label>
+  </div>
+  <div class="res" id="eRes">Nueva altura instrumental: —</div>
+  <div class="acts"><button class="btn pri" id="eOk">Usar esta estación</button><button class="btn" id="eX">Cerrar</button></div>
+  <div class="hist" id="hist"></div>
+</div></div>
+
+<!-- Reporte -->
+<div class="sheet" id="shRep"><div class="pane" id="repPane">
+  <div id="repBody"></div>
+  <div class="acts noprint"><button class="btn pri" id="rPdf">Imprimir / PDF</button><button class="btn" id="rCsv">Compartir CSV</button></div>
+  <div class="acts noprint"><button class="btn" id="rX">Cerrar</button></div>
+</div></div>
+
+<!-- Menu -->
+<div class="sheet" id="shMenu"><div class="pane">
+  <h3>Planilla</h3>
+  <div class="mut" id="mInfo">Sin planilla cargada</div>
+  <label class="f"><span>Cargar planilla (.xlsx, .csv, .txt)</span><input type="file" id="file" accept=".xlsx,.xls,.csv,.txt,text/csv,text/plain,text/comma-separated-values,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream,*/*"></label>
+  <label class="f" id="sheetBox" style="display:none"><span>Hoja</span><select id="sheetSel"></select></label>
+  <label class="f"><span>Ajuste a la cota de proyecto (m) — ej. −0.30 para pasar de rasante a subrasante, +0.20 si marcas sobre la cota</span><input id="adj" inputmode="decimal" value="0"></label>
+  <div class="acts">
+    <button class="btn pri" id="mRep">Reporte de cierre</button>
+    <button class="btn" id="mExp">Exportar registro (CSV)</button>
+    <button class="btn" id="mReset">Borrar marcas</button>
+  </div>
+  <label class="f"><span>Tolerancia de cierre (mm × √km)</span><input id="tolK" inputmode="decimal" value="10"></label>
+  <div class="acts"><button class="btn" id="mX">Cerrar</button></div>
+  <div class="hist">Funciona sin internet. Los datos quedan guardados en este teléfono. Lectura = Altura instrumental − (cota proyecto + ajuste).</div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous"></script>
+<script>if(!window.XLSX)document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin="anonymous"><\/script>')</script>
+<script>
+const $=id=>document.getElementById(id);
+const num=v=>{if(v===null||v===undefined)return NaN;const s=String(v).trim().replace(',','.');return s===''?NaN:Number(s)};
+const f3=x=>Number.isFinite(x)?x.toFixed(3):'—';
+let S={pts:[],est:null,hist:[],adj:0,cur:0,fil:'all',file:''};
+const KEY='estacado_v1';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{const t=localStorage.getItem(KEY);if(t)S=Object.assign(S,JSON.parse(t))}catch(e){}}
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2200)}
+function sideName(d){return d<0?'IZQ':d>0?'DER':'EJE'}
+function lect(p){return S.est?S.est.ai-(p.z+S.adj):NaN}
+
+// ---------- Parsing ----------
+function fromRows(rows){
+  // rows: arrays. Try DM,DIST,COTA (header detection) else point CSV P,N,E,Z,CODE
+  let hi=-1,cD=0,cO=1,cZ=2;
+  for(let i=0;i<Math.min(rows.length,30);i++){
+    const r=rows[i].map(x=>String(x??'').trim().toUpperCase());
+    const a=r.findIndex(x=>x==='DM'||x==='P.K.'||x==='PK'), b=r.findIndex(x=>x.startsWith('DIST')), c=r.findIndex(x=>x.startsWith('COTA'));
+    if(a>=0&&b>=0&&c>=0){hi=i;cD=a;cO=b;cZ=c;break}
+  }
+  const out=[];
+  const body=rows.slice(hi+1);
+  // DM,DIST,COTA format?
+  let ok3=0;for(const r of body.slice(0,50)){if(Number.isFinite(num(r[cD]))&&Number.isFinite(num(r[cO]))&&Number.isFinite(num(r[cZ]))&&(r.length<=4||hi>=0))ok3++}
+  if(hi>=0||ok3>=3){
+    for(const r of body){const dm=num(r[cD]),d=num(r[cO]),z=num(r[cZ]);if([dm,d,z].every(Number.isFinite))out.push({dm,d,z})}
+    if(out.length) return out;
+  }
+  // Planilla tipo CARPETA: DM | ... COTA ANCHO ... EJE ... ANCHO COTA (izq / eje / der)
+  const carp=fromCarpeta(rows); if(carp.length) return carp;
+  // Point file: name,N,E,Z,code  (codes IZQ/DER/EJE or DM number on axis)
+  const P=body.filter(r=>r.length>=5&&[1,2,3].every(i=>Number.isFinite(num(r[i])))).map(r=>({name:String(r[0]).trim(),N:num(r[1]),E:num(r[2]),Z:num(r[3]),c:String(r[4]).trim().toUpperCase()}));
+  if(!P.length) return out;
+  // assign DM: axis rows carry DM in code, or name like 5350E
+  const axisDM=p=>{if(/^-?\d+(\.\d+)?$/.test(p.c))return num(p.c);const m=p.name.match(/^(\d+(?:\.\d+)?)[IED]$/i);return m?num(m[1]):NaN};
+  const isL=p=>p.c==='IZQ'||/I$/i.test(p.name)&&p.c!=='DER'&&p.c!=='EJE'&&!/^\d/.test(p.c);
+  const isR=p=>p.c==='DER';
+  // Group sequentially: find axis points, attach nearest IZQ/DER neighbours
+  const axes=P.map((p,i)=>({p,i,dm:(p.c==='EJE'||/^-?\d/.test(p.c))?axisDM(p):NaN})).filter(a=>Number.isFinite(a.dm));
+  for(const a of axes){
+    out.push({dm:a.dm,d:0,z:a.p.Z});
+    for(const j of [a.i-1,a.i+1,a.i-2,a.i+2]){const q=P[j];if(!q)continue;
+      if(q.c==='IZQ'||q.c==='DER'){const dist=Math.hypot(q.N-a.p.N,q.E-a.p.E);if(dist>30)continue;
+        const d=(q.c==='IZQ'?-1:1)*Math.round(dist*100)/100;
+        if(!out.some(o=>o.dm===a.dm&&Math.sign(o.d)===Math.sign(d)))out.push({dm:a.dm,d,z:q.Z})}}
+  }
+  out.sort((x,y)=>x.dm-y.dm||x.d-y.d);
+  return out;
+}
+function fromCarpeta(rows){
+  for(let i=0;i<Math.min(rows.length,40);i++){
+    const r=rows[i].map(x=>String(x??'').trim().toUpperCase());
+    const iE=r.indexOf('EJE');if(iE<0)continue;
+    const cotas=r.map((x,k)=>x==='COTA'?k:-1).filter(k=>k>=0), anch=r.map((x,k)=>x==='ANCHO'?k:-1).filter(k=>k>=0);
+    const cL=cotas.filter(k=>k<iE), cR=cotas.filter(k=>k>iE);
+    if(!cL.length||!cR.length||anch.length<2)continue;
+    const L=cL[0], R=cR[cR.length-1];               // borde exterior de cada lado
+    const aL=anch.find(k=>k>L&&k<iE)??anch[0], aR=[...anch].reverse().find(k=>k<R&&k>iE)??anch[anch.length-1];
+    // columna DM: primera columna con números en las filas siguientes
+    let cD=0;
+    const out=[];
+    for(const row of rows.slice(i+1)){
+      const dm=num(row[cD]),zl=num(row[L]),wl=num(row[aL]),ze=num(row[iE]),wr=num(row[aR]),zr=num(row[R]);
+      if(!Number.isFinite(dm)||!Number.isFinite(ze))continue;
+      if(Number.isFinite(zl)&&Number.isFinite(wl))out.push({dm,d:-Math.abs(wl),z:zl});
+      out.push({dm,d:0,z:ze});
+      if(Number.isFinite(zr)&&Number.isFinite(wr))out.push({dm,d:Math.abs(wr),z:zr});
+    }
+    if(out.length>=3)return out;
+  }
+  return [];
+}
+let WB=null;
+function useSheet(name){
+  const rows=XLSX.utils.sheet_to_json(WB.Sheets[name],{header:1,raw:true,defval:null});
+  return fromRows(rows);
+}
+function setPts(arr,fname){
+  if(!arr.length){toast('No encontré puntos (DM, DIST, COTA) en el archivo');return}
+  S.pts=arr.map(o=>({dm:o.dm,d:o.d,z:o.z,done:false}));S.cur=0;S.file=fname;save();render();
+  toast(arr.length+' puntos cargados');
+}
+$('file').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const head=new Uint8Array(await f.slice(0,2).arrayBuffer());const isZip=head[0]===0x50&&head[1]===0x4B;const isOle=head[0]===0xD0&&head[1]===0xCF;
+    if(!isZip&&!isOle){
+      const t=await f.text();
+      const rows=t.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(/[;,\t]/));
+      $('sheetBox').style.display='none';setPts(fromRows(rows),f.name);
+    }else{
+      if(!window.XLSX){toast('Para leer .xlsx abre la app una vez con señal. Sin señal usa el .csv');return}
+      WB=XLSX.read(await f.arrayBuffer(),{type:'array'});
+      let best=null,bn=-1;
+      for(const n of WB.SheetNames){const a=useSheet(n);if(a.length>bn){bn=a.length;best=n}}
+      const sel=$('sheetSel');sel.innerHTML=WB.SheetNames.map(n=>`<option ${n===best?'selected':''}>${n}</option>`).join('');
+      $('sheetBox').style.display=WB.SheetNames.length>1?'block':'none';
+      sel.onchange=()=>setPts(useSheet(sel.value),f.name+' · '+sel.value);
+      setPts(useSheet(best),f.name+' · '+best);
+    }
+  }catch(err){toast('No pude leer el archivo')}
+};
+
+// ---------- Render ----------
+function groups(){
+  const g=[];let last=null;
+  S.pts.forEach((p,i)=>{if(!last||last.dm!==p.dm){last={dm:p.dm,items:[]};g.push(last)}last.items.push(i)});
+  return g;
+}
+function render(){
+  // top
+  if(S.est){$('aiVal').textContent=f3(S.est.ai);$('aiSub').textContent=S.est.desc}
+  else{$('aiVal').textContent='—';$('aiSub').textContent='Toca "Estación" para comenzar'}
+  const done=S.pts.filter(p=>p.done).length;
+  const lp=S.pts[S.last];$('chips').innerHTML=S.pts.length?(lp?`<span class="chip go" id="chLast">◉ Último: DM ${lp.dm} ${sideName(lp.d)} → continuar</span>`:'')+`<span class="chip">${done}/${S.pts.length} estacados</span>`+(S.adj?`<span class="chip">Ajuste ${S.adj>0?'+':''}${f3(S.adj)}</span>`:'')+`<span class="chip">${S.file||''}</span>`:'';
+  $('bFil').textContent=S.fil==='all'?'Todos':'Pendientes';
+  $('fab').style.display=S.pts.length?'flex':'none';
+  const L=$('list');
+  if(!S.pts.length){L.innerHTML=`<div class="empty"><h2>Carga tu planilla</h2><p>Toca ☰ y elige la planilla de estacado (.xlsx) con columnas DM, DIST y COTA PROYECTO, o el CSV de puntos.</p><button class="btn acc" onclick="openSh('shMenu')">Cargar planilla</button></div>`;return}
+  const curDM=S.pts[S.cur]?.dm;
+  let h='';
+  for(const g of groups()){
+    const items=g.items.filter(i=>S.fil==='all'||!S.pts[i].done);
+    if(!items.length)continue;
+    h+=`<div class="dm${g.dm===curDM?' cur':''}" id="dm${g.items[0]}"><div class="dmh">DM ${g.dm}<span>${g.items.filter(i=>S.pts[i].done).length}/${g.items.length}</span></div>`;
+    const np=nextPend();
+    for(const i of items){const p=S.pts[i],l=lect(p);
+      h+=`<div class="pt${p.done?' done':''}${i===np?' nx':''}" data-i="${i}"><div class="side">${sideName(p.d)}<small>${p.d>0?'+':''}${p.d}</small></div>
+      <div class="cz">Cota ${f3(p.z+S.adj)}${p.done?`<div class="ck">✓ ${p.r!=null?'leído '+f3(p.r):'estacado'}</div>`:''}</div>
+      <div class="lec${l<0?' neg':''}">${f3(l)}<small>LECTURA</small></div></div>`}
+    h+='</div>';
+  }
+  L.innerHTML=h||'<div class="empty">Todo estacado ✓</div>';
+}
+$('chips').onclick=e=>{if(e.target.closest('#chLast'))goNext()};
+$('list').onclick=e=>{const el=e.target.closest('.pt');if(el)openPt(+el.dataset.i)};
+
+// ---------- Point sheet ----------
+let PI=-1;
+function openSh(id){$(id).classList.add('on')}
+function closeSh(id){$(id).classList.remove('on')}
+document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{if(e.target===s)s.classList.remove('on')}));
+function openPt(i){PI=i;S.cur=i;save();const p=S.pts[i];
+  $('ptT').textContent=`DM ${p.dm} · ${sideName(p.d)} ${p.d>0?'+':''}${p.d}`;
+  $('ptS').textContent=`Cota proyecto ${f3(p.z)}${S.adj?` + ajuste ${f3(S.adj)} = ${f3(p.z+S.adj)}`:''}`;
+  $('ptL').textContent=S.est?f3(lect(p)):'Sin estación';
+  $('ptR').value=p.r!=null?p.r:'';showDif();openSh('shPt');
+  document.querySelectorAll('.dm.cur').forEach(x=>x.classList.remove('cur'));
+}
+function showDif(){const p=S.pts[PI],r=num($('ptR').value),l=lect(p),box=$('ptD');
+  if(!Number.isFinite(r)||!S.est){box.style.display='none';return}
+  const zt=S.est.ai-r, dz=zt-(p.z+S.adj);box.style.display='block';
+  box.innerHTML=`Cota terreno <b>${f3(zt)}</b><br>${Math.abs(dz)<0.0005?'En cota':dz>0?'CORTE':'RELLENO'} <b>${f3(Math.abs(dz))}</b> m`;
+}
+$('ptR').oninput=showDif;
+$('ptOk').onclick=()=>{const p=S.pts[PI],r=num($('ptR').value);p.done=true;p.r=Number.isFinite(r)?r:null;p.ai=S.est?S.est.ai:null;p.t=new Date().toISOString();S.last=PI;save();closeSh('shPt');render();next(PI)};
+$('ptUndo').onclick=()=>{const p=S.pts[PI];p.done=false;p.r=null;save();closeSh('shPt');render()};
+$('ptX').onclick=()=>closeSh('shPt');
+$('ptPc').onclick=()=>{const r=num($('ptR').value);closeSh('shPt');openEst('pc');if(Number.isFinite(r)){$('pLA').value=r;estCalc()}};
+
+// ---------- Navigation ----------
+function scrollToIdx(i){const g=groups().find(g=>g.items.includes(i));const el=g&&$('dm'+g.items[0]);
+  if(el){document.querySelectorAll('.dm.cur').forEach(x=>x.classList.remove('cur'));el.classList.add('cur');
+  const y=el.getBoundingClientRect().top+scrollY-$('top').offsetHeight-6;scrollTo({top:y,behavior:'smooth'})}}
+function nextPend(){const from=S.last??-1;let n=S.pts.findIndex((p,i)=>i>from&&!p.done);if(n<0)n=S.pts.findIndex(p=>!p.done);return n}
+function goNext(){const n=nextPend();if(n<0){toast('Todo estacado ✓');return}S.cur=n;save();render();scrollToIdx(n)}
+function next(from){const n=S.pts.findIndex((p,i)=>i>from&&!p.done);if(n>=0){S.cur=n;save();scrollToIdx(n)}else toast('No quedan puntos pendientes hacia adelante')}
+$('bNext').onclick=()=>{const g=groups();const k=g.findIndex(x=>x.items.includes(S.cur));const t=g[Math.min(k+1,g.length-1)];S.cur=t.items[0];save();scrollToIdx(S.cur)};
+$('bPrev').onclick=()=>{const g=groups();const k=g.findIndex(x=>x.items.includes(S.cur));const t=g[Math.max(k-1,0)];S.cur=t.items[0];save();scrollToIdx(S.cur)};
+function go(){const v=num($('q').value);if(!Number.isFinite(v)||!S.pts.length)return;
+  let bi=0,bd=1e18;S.pts.forEach((p,i)=>{const d=Math.abs(p.dm-v);if(d<bd){bd=d;bi=i}});
+  if(S.fil!=='all'&&S.pts[bi].done){S.fil='all';render()}S.cur=bi;save();scrollToIdx(bi);$('q').blur()}
+$('bGo').onclick=go;$('q').onkeydown=e=>{if(e.key==='Enter')go()};
+$('bFil').onclick=()=>{S.fil=S.fil==='all'?'pend':'all';save();render();scrollToIdx(S.cur)};
+
+// ---------- Station ----------
+let mode='pr';
+const curDM=()=>S.pts[S.cur]?.dm??null;
+function openEst(m){mode=m||(S.est?'pc':'pr');
+  if((mode==='pc'||mode==='ci')&&!S.est){toast('Primero define una estación desde un PR');mode='pr'}
+  $('tPR').classList.toggle('on',mode==='pr');$('tPC').classList.toggle('on',mode==='pc');$('tCI').classList.toggle('on',mode==='ci');
+  $('vPR').style.display=mode==='pr'?'block':'none';$('vPC').style.display=mode==='pc'?'block':'none';$('vCI').style.display=mode==='ci'?'block':'none';
+  $('eOk').textContent=mode==='ci'?'Registrar cierre':'Usar esta estación';
+  if(mode==='ci'&&!$('cN').value){const st=circuit()[0];if(st){$('cN').value=st.nombre||'';$('cC').value=st.cota!=null?st.cota:''}}
+  $('hist').innerHTML=S.hist.length?'<b>Estaciones</b>'+S.hist.slice().reverse().map(h=>`<div>${new Date(h.t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} · ${h.tipo==='CIERRE'?'CIERRE '+(h.nombre||'')+' error '+(h.err*1000).toFixed(1)+' mm':'AI '+f3(h.ai)+' · '+h.desc}</div>`).join(''):'';
+  estCalc();openSh('shEst')}
+$('tPR').onclick=()=>openEst('pr');$('tPC').onclick=()=>openEst('pc');$('tCI').onclick=()=>openEst('ci');
+let NEW=null;
+function estCalc(){NEW=null;
+  if(mode==='pr'){const c=num($('eC').value),la=num($('eLA').value),n=$('eN').value.trim()||'PR';
+    if(Number.isFinite(c)&&Number.isFinite(la))NEW={tipo:'PR',nombre:n,cota:c,la,ai:c+la,desc:`${n} ${f3(c)} + LA ${f3(la)}`};
+    $('eRes').innerHTML='Nueva altura instrumental: <b>'+(NEW?f3(NEW.ai):'—')+'</b>';}
+  else if(mode==='pc'){const lad=num($('pLA').value),lb=num($('pLB').value);
+    const cpc=Number.isFinite(lad)?S.est.ai-lad:NaN;$('pC').textContent='Cota punto de cambio: '+f3(cpc);
+    if(Number.isFinite(cpc)&&Number.isFinite(lb))NEW={tipo:'PC',nombre:'PC'+(circuit().filter(h=>h.tipo==='PC').length+1),cota:cpc,lad,la:lb,ai:cpc+lb,desc:`PC ${f3(cpc)} + LA ${f3(lb)}`};
+    $('eRes').innerHTML='Nueva altura instrumental: <b>'+(NEW?f3(NEW.ai):'—')+'</b>';}
+  else{const c=num($('cC').value),l=num($('cL').value),n=$('cN').value.trim()||'PR';
+    if(Number.isFinite(c)&&Number.isFinite(l)){const calc=S.est.ai-l;NEW={tipo:'CIERRE',nombre:n,cota:c,lad:l,calc,err:calc-c,ai:S.est.ai,desc:'cierre'}}
+    $('eRes').innerHTML=NEW?`Cota calculada <b>${f3(NEW.calc)}</b> · error <b>${(NEW.err*1000).toFixed(1)} mm</b>`:'Error de cierre: —';}
+}
+['eC','eLA','pLA','pLB','eN','cN','cC','cL'].forEach(id=>$(id).oninput=estCalc);
+$('eOk').onclick=()=>{if(!NEW){toast('Faltan datos');return}
+  NEW.t=new Date().toISOString();NEW.dm=S.pts[S.last]?.dm??curDM();S.hist.push(NEW);
+  if(NEW.tipo!=='CIERRE'){S.est={ai:NEW.ai,desc:NEW.desc};const lp=S.pts[S.last];toast('AI '+f3(NEW.ai)+(lp?' · sigue después de DM '+lp.dm+' '+sideName(lp.d):''))}
+  ['pLA','pLB','cL'].forEach(id=>$(id).value='');save();closeSh('shEst');render();
+  if(NEW.tipo==='CIERRE')openRep();else goNext()};
+$('eX').onclick=()=>closeSh('shEst');
+$('bEst').onclick=()=>openEst();$('aiBox').onclick=()=>openEst();
+
+// ---------- Reporte de cierre ----------
+function circuit(){ // desde el último PR de partida
+  let i=-1;S.hist.forEach((h,k)=>{if(h.tipo==='PR')i=k});
+  return i<0?[]:S.hist.slice(i);
+}
+function repData(){
+  const c=circuit();if(!c.length)return null;
+  const st=c[0];const ci=[...c].reverse().find(h=>h.tipo==='CIERRE')||null;
+  const rows=c.filter(h=>h.tipo!=='CIERRE'||h===ci);
+  const sLA=rows.reduce((a,h)=>a+(h.la??0),0), sLad=rows.reduce((a,h)=>a+(h.lad??0),0);
+  const marked=S.pts.filter(p=>p.done&&p.t&&p.t>=st.t);
+  const dms=marked.map(p=>p.dm);
+  const kmAuto=dms.length?Math.max(0.01,(Math.max(...dms)-Math.min(...dms))/1000*(ci&&ci.nombre===st.nombre?2:1)):null;
+  const tolK=num(S.tolK??10);
+  const tol=kmAuto!=null&&Number.isFinite(tolK)?tolK*Math.sqrt(kmAuto)/1000:null;
+  return {st,ci,rows,sLA,sLad,check:ci?st.cota+sLA-sLad:null,marked,dms,km:kmAuto,tol,tolK};
+}
+function openRep(){
+  const d=repData();const B=$('repBody');
+  if(!d){B.innerHTML='<h3>Reporte de cierre</h3><p class="mut">Aún no hay estaciones registradas. Parte con una estación desde un PR.</p>';openSh('shRep');return}
+  const {st,ci,rows,sLA,sLad,check,marked,dms,km,tol,tolK}=d;
+  let h=`<h3>Reporte de cierre de nivelación</h3><div class="mut">${S.file||''}<br>${new Date(st.t).toLocaleDateString()} · ${new Date(st.t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} a ${new Date((ci||rows[rows.length-1]).t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}${dms.length?` · DM ${Math.min(...dms)} a ${Math.max(...dms)} · ${marked.length} puntos estacados`:''}</div>`;
+  h+='<table class="rt"><tr><th>#</th><th>Punto</th><th>L. atrás</th><th>L. adelante</th><th>AI</th><th>Cota</th></tr>';
+  rows.forEach((r,k)=>{h+=`<tr><td>${k+1}</td><td>${r.tipo==='CIERRE'?'Cierre '+r.nombre:r.tipo==='PR'?r.nombre+' (partida)':r.nombre}${r.dm!=null&&r.tipo!=='PR'?` <span class="mut">DM ${r.dm}</span>`:''}</td><td>${r.la!=null?f3(r.la):''}</td><td>${r.lad!=null?f3(r.lad):''}</td><td>${r.tipo==='CIERRE'?'':f3(r.ai)}</td><td>${f3(r.tipo==='CIERRE'?r.calc:r.cota)}</td></tr>`});
+  h+=`<tr><th></th><th>Σ</th><th>${f3(sLA)}</th><th>${f3(sLad)}</th><th></th><th></th></tr></table>`;
+  h+=`<div class="sum"><span>Cota de partida (${st.nombre})</span><b>${f3(st.cota)}</b><span>Cambios de estación</span><b>${rows.filter(r=>r.tipo==='PC').length}</b>`;
+  if(ci){h+=`<span>Cota calculada en ${ci.nombre}</span><b>${f3(ci.calc)}</b><span>Cota conocida ${ci.nombre}</span><b>${f3(ci.cota)}</b>
+    <span>Comprobación Σatrás − Σadelante</span><b>${f3(check)} ${Math.abs(check-ci.calc)<0.0005?'✓':'✗'}</b>
+    <span>Error de cierre</span><b>${(ci.err*1000).toFixed(1)} mm</b>`;
+    if(tol!=null)h+=`<span>Tolerancia ${tolK} mm×√${km.toFixed(2)} km</span><b>±${(tol*1000).toFixed(1)} mm</b>`;}
+  h+='</div>';
+  if(!ci)h+='<div class="verd na">Falta el cierre: en Estación → Cierre, lee adelante sobre un PR conocido.</div>';
+  else if(tol==null)h+=`<div class="verd na">Error ${(ci.err*1000).toFixed(1)} mm (sin distancia para calcular tolerancia)</div>`;
+  else h+=Math.abs(ci.err)<=tol?`<div class="verd ok">CUMPLE · error ${(ci.err*1000).toFixed(1)} mm</div>`:`<div class="verd bad">NO CUMPLE · error ${(ci.err*1000).toFixed(1)} mm</div>`;
+  h+='<div class="hist">Distancia estimada según los DM estacados en el circuito (ida y vuelta si cierra en el mismo PR).</div>';
+  B.innerHTML=h;openSh('shRep');
+}
+$('rX').onclick=()=>closeSh('shRep');
+$('rPdf').onclick=()=>window.print();
+$('rCsv').onclick=()=>{const d=repData();if(!d)return;
+  const L=['PUNTO;DM;L_ATRAS;L_ADELANTE;AI;COTA;HORA'];
+  d.rows.forEach(r=>L.push([r.tipo==='CIERRE'?'CIERRE '+r.nombre:r.nombre,r.dm??'',r.la!=null?f3(r.la):'',r.lad!=null?f3(r.lad):'',r.tipo==='CIERRE'?'':f3(r.ai),f3(r.tipo==='CIERRE'?r.calc:r.cota),new Date(r.t).toLocaleString()].join(';')));
+  L.push('');L.push('SUMA_ATRAS;'+f3(d.sLA));L.push('SUMA_ADELANTE;'+f3(d.sLad));
+  if(d.ci){L.push('COTA_CONOCIDA;'+f3(d.ci.cota));L.push('COTA_CALCULADA;'+f3(d.ci.calc));L.push('ERROR_MM;'+(d.ci.err*1000).toFixed(1));
+    if(d.tol!=null){L.push('TOLERANCIA_MM;'+(d.tol*1000).toFixed(1));L.push('RESULTADO;'+(Math.abs(d.ci.err)<=d.tol?'CUMPLE':'NO CUMPLE'))}}
+  shareCsv(L,'cierre_nivelacion.csv')};
+async function shareCsv(lines,name){
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv'});
+  try{const file=new File([blob],name,{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+
+// ---------- Menu ----------
+$('bMenu').onclick=()=>{$('mInfo').textContent=S.pts.length?`${S.file} — ${S.pts.length} puntos, DM ${S.pts[0].dm} a ${S.pts[S.pts.length-1].dm}`:'Sin planilla cargada';$('adj').value=S.adj;$('tolK').value=S.tolK??10;openSh('shMenu')};
+$('mX').onclick=()=>closeSh('shMenu');
+$('mRep').onclick=()=>{closeSh('shMenu');openRep()};
+$('tolK').oninput=()=>{S.tolK=$('tolK').value;save()};
+$('adj').oninput=()=>{const v=num($('adj').value);S.adj=Number.isFinite(v)?v:0;save();render()};
+$('mReset').onclick=()=>{if(!S.pts.some(p=>p.done)){toast('No hay marcas');return}
+  if(confirmReset()){S.pts.forEach(p=>{p.done=false;p.r=null});save();render();toast('Marcas borradas')}};
+let resetArm=0;function confirmReset(){if(Date.now()-resetArm<4000)return true;resetArm=Date.now();toast('Toca otra vez para confirmar');return false}
+$('mExp').onclick=async()=>{
+  const lines=['DM;DIST;COTA_PROY;AJUSTE;AI;LECT_TEORICA;LECT_REAL;COTA_TERRENO;CORTE(+)/RELLENO(-);ESTADO;HORA'];
+  for(const p of S.pts){const ai=p.ai??null,lt=ai!=null?ai-(p.z+S.adj):null,zt=(ai!=null&&p.r!=null)?ai-p.r:null;
+    lines.push([p.dm,p.d,f3(p.z),f3(S.adj),ai!=null?f3(ai):'',lt!=null?f3(lt):'',p.r!=null?f3(p.r):'',zt!=null?f3(zt):'',zt!=null?f3(zt-(p.z+S.adj)):'',p.done?'ESTACADO':'PENDIENTE',p.t?new Date(p.t).toLocaleString():''].join(';'))}
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv'});const name='registro_estacado.csv';
+  try{const file=new File([blob],name,{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+};
+
+load();render();if(S.pts.length)setTimeout(()=>scrollToIdx(S.cur),50);
+</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+</script>
+</body>
+</html>
