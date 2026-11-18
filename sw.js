@@ -1,4 +1,4 @@
-const C='estacado-v2';
+const C='estacado-v3';
 const LOCAL=['./','index.html','manifest.json','icon-180.png','icon-192.png','icon-512.png'];
 const CDN=['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(async c=>{await c.addAll(LOCAL);
